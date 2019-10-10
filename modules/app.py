@@ -301,7 +301,6 @@ class App:
         resp = requests.post(API_ENDPOINT, headers = headers,
                             data = audio)
     
-        # export PYTHONIOENCODING=utf-8 colocar antes de ejecutar
         # converting response content to JSON format
         data = json.loads(resp.content.decode("unicode_escape").encode('latin1').decode('utf8'))
     
