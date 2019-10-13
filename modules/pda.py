@@ -24,9 +24,9 @@ class PDA:
         for s in self.states:
             for key,value in s.transitions.items():
                 if s.id == 0:
-                    label="a-z/λ/a-z"
+                    label="a-z, λ ⟶ a-z"
                 else:
-                   label="a-z/a-z/λ" 
+                   label="a-z, a-z ⟶ λ" 
             if label != "":
                 overlapping.append({'label':label,'id':s.id})
                 label = ""

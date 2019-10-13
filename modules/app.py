@@ -1,4 +1,4 @@
-import pyttsx3, pyaudio, wave, requests, json
+import pyttsx3, pyaudio, wave, requests, json, copy
 from tkinter import *
 from .language import Language
 from .state import State
@@ -111,7 +111,7 @@ class App:
         state1.addTransition("x",0)
         state1.addTransition("y",0)
         state1.addTransition("z",0)
-        state1.addTransition("∈, ∈ ⟶ ∈",1)
+        state1.addTransition("λ, λ ⟶ λ",1)
         state2.addTransition("a",1)
         state2.addTransition("b",1)
         state2.addTransition("c",1)
@@ -139,7 +139,7 @@ class App:
         state2.addTransition("x",1)
         state2.addTransition("y",1)
         state2.addTransition("z",1)
-        state2.addTransition("∈, # ⟶ ∈",2)
+        state2.addTransition("λ, # ⟶ λ",2)
 
         self.automata = PDA([state1,state2,state3])
 
@@ -179,7 +179,7 @@ class App:
             txt.destroy()
 
         stringStack = []
-        for i in range(4,length+4):
+        for i in range(4,length+5):
             varElem = StringVar()
             stringStack.append(varElem)
             element = Entry(self.panel, width=7, textvariable=varElem, state='disabled',font=('Verdana',12))
@@ -188,7 +188,7 @@ class App:
             self.txtStack.append(element)
 
         stringStack[-1].set("#")
-        length-=1
+        # length-=1
         self.changeTransitions(0,0)
         s=1
         i=0
@@ -294,8 +294,7 @@ class App:
         audio = self.read_audio(AUDIO_FILENAME)
     
         # defining headers for HTTP request
-        headers = {'authorization': 'Bearer ' + wit_access_token,
-                'Content-Type': 'audio/wav'}
+        headers = {'authorization': 'Bearer ' + wit_access_token,'Content-Type': 'audio/wav'}
     
         # making an HTTP post request
         resp = requests.post(API_ENDPOINT, headers = headers,
@@ -322,27 +321,14 @@ class App:
         self.stack = Stack()
         self.stack.push("#")
         if self.language.verifyComposition(self.word.get()):
-            for i,l in enumerate(self.word.get()):
-                if self.automata.currentState == 0:
-                    if l in "abcdefghijklmnñopqrstuvwxyz":
-                        if i == middle:
-                            self.automata.nexState(1)
-                            if length%2==0:
-                                self.stack.push(l)
-                                transitions.append({'id':0,'letter':l,'push':True})
-                        else:
-                            self.stack.push(l)
-                            transitions.append({'id':0,'letter':l,'push':True})
-                elif self.automata.currentState == 1:
-                    transitions.append({'id':1,'letter':l,'push':False})
-                    if l == self.stack.getTop():
-                        self.stack.pop()
-                        if self.stack.getTop() == "#":
-                            transitions.append({'id':2,'letter':l,'push':False})
-                            self.automata.nexState(2)
-                            self.stack.pop()
-                    else:
-                        break
+            if length%2==0:
+                word = ""
+                for l in self.word.get():
+                    word += l+"λ" 
+                print(word)
+                valid, transitions = self.validateEvenPDA(word,0,['#'],[])
+            else:
+                transitions = self.validateOddPDA(transitions, middle)
 
             if self.automata.verifyAcceptation():
                 self.lblResult.config(text = "Is valid?: YES", fg="green")
@@ -356,4 +342,59 @@ class App:
                 self.animate(length, transitions, 500)
             else:
                 self.animate(length, transitions, 2000)
+
+
+    def validateEvenPDA(self, word, l, stack, transitions):
+        validWay = False
+        if l<len(word):
+
+            if self.automata.currentState == 0:
+                if word[l] in "abcdefghijklmnñopqrstuvwxyz":
+                    stack.append(word[l])
+                    transitions.append({'id':0,'letter':word[l],'push':True})
+                elif word[l] == "λ":
+                    self.automata.nexState(1)
+                    validWay, transitionsAux = self.validateEvenPDA(word,l+1,stack.copy(),transitions.copy())
+                    if not validWay:
+                        self.automata.nexState(0)
+                    else:
+                        transitions = transitionsAux 
+                        return validWay, transitions 
+            elif self.automata.currentState == 1:
+                if  word[l] != "λ" and word[l] == stack[-1]:
+                    stack.pop()
+                    transitions.append({'id':1,'letter':word[l],'push':False})
+                elif word[l] == "λ":
+                    if stack[-1] == "#" and l == len(word)-1:
+                        stack.pop()
+                        transitions.append({'id':2,'letter':"#",'push':False})
+                        self.automata.nexState(2)
+                        return True, transitions
+                else:
+                    return False, []
+            validWay, transitions = self.validateEvenPDA(word,l+1, stack,transitions)
+
+        return validWay, transitions
+
+    def validateOddPDA(self,transitions, middle):
+        for i,l in enumerate(self.word.get()):
+            if self.automata.currentState == 0:
+                if l in "abcdefghijklmnñopqrstuvwxyz":
+                    if i == middle:
+                        self.automata.nexState(1)
+                    else:
+                        self.stack.push(l)
+                        transitions.append({'id':0,'letter':l,'push':True})
+            elif self.automata.currentState == 1:
+                transitions.append({'id':1,'letter':l,'push':False})
+                if l == self.stack.getTop():
+                    self.stack.pop()
+                    if self.stack.getTop() == "#":
+                        transitions.append({'id':2,'letter':l,'push':False})
+                        self.automata.nexState(2)
+                        self.stack.pop()
+                else:
+                    break
+        return transitions
+
             
