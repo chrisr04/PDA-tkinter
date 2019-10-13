@@ -12,4 +12,6 @@ class State:
     def addTransition(self,way,id):
         self.transitions[way] = id
 
+    def deleteTransition(self,way):
+        del self.transitions[way]
     

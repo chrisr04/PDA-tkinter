@@ -9,12 +9,12 @@ class Graph:
         self.transitions = transitions
         self.accepted = accepted
 
-    def initGraph(self):
+    def initGraph(self,label):
 
         self.G=nx.MultiDiGraph()
 
         self.G.graph['edge'] = {'arrowsize': '0.6', 'overlap':False,'color':'black'}
-        self.G.graph['graph'] = {'scale': '3', 'rankdir':'LR'}
+        self.G.graph['graph'] = {'scale': '3', 'rankdir':'LR', 'label':label}
         self.G.graph['node']= {'shape':'circle', 'color':'black'}
         
         for edge in self.transitions:
