@@ -60,7 +60,6 @@ class ScrolledFrame(Frame):
 
     def frame_width(self, event):
         # resize inner frame to canvas size
-        # canvas_width = event.width
         self._canvas.itemconfig(self._window, width = 200)
 
     def resize(self, event=None): 
@@ -93,7 +92,6 @@ class App:
         self.lblPDA = Label(self.panel, text="Pushdown Automaton", font=('Verdana',20))
         self.lblPDA.grid(row = 0,column=0, columnspan=5, pady=10)
 
-
         self.lblWord = Label(self.panel, text="Word:", font=('Verdana',12))
         self.lblWord.grid(row = 1, column=0, pady=10)
         self.txtWord=Entry(self.panel, textvariable = self.word, width="16",font=('Verdana',12))
@@ -118,8 +116,6 @@ class App:
         self.panelStack = ScrolledFrame(self.panel)
         self.panelStack.grid(row = 4,column=0, columnspan=5, pady=10)
 
-        # self.scrollbar = Scrollbar(self.gui,orient=VERTICAL,command=self.panelStack.yview)
-
         for i in range(10):
             element = Entry(self.panelStack.inner, width=7, state='disabled',font=('Verdana',12))
             element.grid(row = i, column=0, columnspan=5)
@@ -127,9 +123,6 @@ class App:
             self.txtStack.append(element)
 
         self.lblResult = Label(self.panel, text="", font=('Verdana',11))
-
-        # self.lbxStack = Listbox(self.panel, width=7)
-        # self.lbxStack.grid(row = 2, column =6, padx=20)
 
         mainloop()
 
