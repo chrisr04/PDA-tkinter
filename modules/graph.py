@@ -26,7 +26,7 @@ class Graph:
 
         self.A = to_agraph(self.G) 
         self.A.layout('dot')                                                          
-        self.A.draw('pda/pda.png')
+        self.A.draw('img/pda/pda.png')
 
     def changeState(self,i,a):
         
@@ -42,7 +42,7 @@ class Graph:
 
         self.A = to_agraph(self.G) 
         self.A.layout('dot')                                                           
-        self.A.draw('pda/pda.png')
+        self.A.draw('img/pda/pda.png')
 
     
 

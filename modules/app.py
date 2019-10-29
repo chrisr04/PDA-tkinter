@@ -22,7 +22,7 @@ class PDAImage(Canvas):
         self.focus_set()
 
     def updateImage(self):
-        self.image = PhotoImage(file="pda/pda.png")
+        self.image = PhotoImage(file="img/pda/pda.png")
         self.itemconfigure(self.imagePDA, image = self.image)
 
 class ScrolledFrame(Frame):
@@ -101,11 +101,12 @@ class App:
         self.btnVerifyFast.grid(row=1, column=2)
         self.btnVerifyLow=Button(self.panel, text="slow", font=('Verdana',10), command=lambda:self.runPDA(False))
         self.btnVerifyLow.grid(row=1, column=3)
-        self.btnSpeech=Button(self.panel, text="voice", font=('Verdana',10), command=lambda:self.runSpeech())
+        icon = PhotoImage(file ="img/microphone.png")
+        self.btnSpeech=Button(self.panel, text="n",width="25",height="25", image=icon, font=('Verdana',10), command=lambda:self.runSpeech())
         self.btnSpeech.grid(row=1, column=4)
         
-        img = PhotoImage(file="pda/background.png")
-        self.sImage = PDAImage(self.panel, image = img, width=465, height=137, bg="#ffffff")
+        background = PhotoImage(file="img/background.png")
+        self.sImage = PDAImage(self.panel, image = background, width=465, height=137, bg="#ffffff")
         self.sImage.grid(row=2, column=0,columnspan=5, padx= 20)
         self.createPDA()
         self.showPDA("odd")
