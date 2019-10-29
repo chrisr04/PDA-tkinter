@@ -123,6 +123,7 @@ class App:
             self.txtStack.append(element)
 
         self.lblResult = Label(self.panel, text="", font=('Verdana',11))
+        self.lblReader = Label(self.panel, text="", font=('Verdana',11))
 
         mainloop()
 
@@ -226,15 +227,15 @@ class App:
         self.G.initGraph(title)
         
 
-    def changeTransitions(self,i,a):
-        self.G.changeState(i,a)
+    def changeTransitions(self,a,i):
+        self.G.changeState(a,i)
         self.sImage.updateImage()
 
     def animate(self,length, transitions, delay):
 
         for txt in self.txtStack:
             txt.destroy()
-
+        self.lblReader.grid(row=5, column=0, pady=5, columnspan=2)
         stringStack = []
         for i in range(length+1):
             varElem = StringVar()
@@ -245,28 +246,124 @@ class App:
             self.txtStack.append(element)
 
         stringStack[-1].set("#")
-        # length-=1
-        self.changeTransitions(0,0)
+        length-=1
+        self.changeTransitions(("q0","q0"),("q0","q0"))
         s=1
-        i=0
-
+        i="q0"
+        a="q0"
         for t in transitions:
-            self.gui.after(s*delay,self.changeTransitions,t['id'],i)
+            self.gui.after(s*delay,self.changeTransitions,(i,"q"+str(t['id'])),(a,i))
             if t['push']:
-                length-=1
                 self.gui.after(s*delay,self.pushStack,stringStack[length],t['letter'])
+                length-=1
             else:
-                self.gui.after(s*delay,self.popStack,stringStack[length])
+                self.gui.after(s*delay,self.popStack,stringStack[length],t['letter'])
                 length+=1
             s+=1
-            i=t['id']
+            a=i
+            i="q"+str(t['id'])
+            
     
 
     def pushStack(self, satckPlace,value):
+        self.lblReader.config(text=str("Reader: "+value))
         satckPlace.set(value)
 
-    def popStack(self, satckPlace):
+    def popStack(self, satckPlace, value):
+        self.lblReader.config(text=str("Reader: "+value))
         satckPlace.set("")
+
+    def runPDA(self, velocity):
+        transitions=[]
+        length = len(self.word.get())
+        middle = int((length+1)/2)-1
+        self.oddPDA.nexState(0)
+        self.evenPDA.nexState(0)
+        self.stack = Stack()
+        self.stack.push("#")
+        if self.language.verifyComposition(self.word.get()):
+            if length%2==0:
+                self.showPDA("even")
+                word = ""
+                for l in self.word.get():
+                    word += l+"λ" 
+                transitions = self.validateEvenPDA(word,0,['#'],[])[1]
+            else:
+                self.showPDA("odd")
+                word = list(self.word.get())
+                lmiddle = word[middle]
+                word[middle]="|"
+                transitions = self.validateOddPDA(word,transitions, lmiddle)
+
+            if self.oddPDA.verifyAcceptation() or self.evenPDA.verifyAcceptation():
+                self.lblResult.config(text = "Is valid?: YES", fg="green")
+                self.sayResutl("the word is valid!")
+            else:    
+                self.lblResult.config(text = "Is valid?: NO", fg="red")
+                self.sayResutl("the word is not valid!")
+
+            self.lblResult.grid(row=5, column=1, pady=5, columnspan=3)
+
+            if velocity:
+                self.animate(length, transitions, 500)
+            else:
+                self.animate(length, transitions, 2000)
+
+
+    def validateEvenPDA(self, word, l, stack, transitions):
+        validWay = False
+        if l<len(word):
+
+            if self.evenPDA.currentState == 0:
+                if word[l] in "abcdefghijklmnñopqrstuvwxyz":
+                    stack.append(word[l])
+                    transitions.append({'id':0,'letter':word[l],'push':True})
+                elif word[l] == "λ":
+                    self.evenPDA.nexState(1)
+                    validWay, transitionsAux = self.validateEvenPDA(word,l+1,stack.copy(),transitions.copy())
+                    if not validWay:
+                        self.evenPDA.nexState(0)
+                    else:
+                        transitions = transitionsAux 
+                        return validWay, transitions 
+            elif self.evenPDA.currentState == 1:
+                if  word[l] != "λ" and word[l] == stack[-1]:
+                    stack.pop()
+                    transitions.append({'id':1,'letter':word[l],'push':False})
+                elif word[l] == "λ":
+                    if stack[-1] == "#" and l == len(word)-1:
+                        stack.pop()
+                        transitions.append({'id':2,'letter':word[l],'push':False})
+                        self.evenPDA.nexState(2)
+                        return True, transitions
+                else:
+                    return False, []
+            validWay, transitions = self.validateEvenPDA(word,l+1, stack,transitions)
+
+        return validWay, transitions
+
+    def validateOddPDA(self,word, transitions, middle):
+
+        for l in word:
+            if self.oddPDA.currentState == 0:
+                if l in "abcdefghijklmnñopqrstuvwxyz":
+                    self.stack.push(l)
+                    transitions.append({'id':0,'letter':l,'push':True})
+                elif l == "|":
+                    transitions.append({'id':0,'letter':middle,'push':False})
+                    self.oddPDA.nexState(1)
+            elif self.oddPDA.currentState == 1:
+                transitions.append({'id':1,'letter':l,'push':False})
+                if l == self.stack.getTop():
+                    self.stack.pop()
+                    if self.stack.getTop() == "#":
+                        transitions.append({'id':2,'letter':l,'push':False})
+                        self.oddPDA.nexState(2)
+                        self.stack.pop()
+                else:
+                    break
+        return transitions
+        
 
     def sayResutl(self,value):
         engine = pyttsx3.init()
@@ -366,93 +463,5 @@ class App:
             self.runPDA(True)
         elif text == "lento":
             self.runPDA(False)
-
-    def runPDA(self, velocity):
-        transitions=[]
-        length = len(self.word.get())
-        middle = int((length+1)/2)-1
-        self.oddPDA.nexState(0)
-        self.evenPDA.nexState(0)
-        self.stack = Stack()
-        self.stack.push("#")
-        if self.language.verifyComposition(self.word.get()):
-            if length%2==0:
-                self.showPDA("even")
-                word = ""
-                for l in self.word.get():
-                    word += l+"λ" 
-                transitions = self.validateEvenPDA(word,0,['#'],[])[1]
-            else:
-                self.showPDA("odd")
-                word = list(self.word.get())
-                word[middle]="|"
-                transitions = self.validateOddPDA(word,transitions, middle)
-
-            if self.oddPDA.verifyAcceptation() or self.evenPDA.verifyAcceptation():
-                self.lblResult.config(text = "Is valid?: YES", fg="green")
-                self.sayResutl("the word is valid!")
-            else:    
-                self.lblResult.config(text = "Is valid?: NO", fg="red")
-                self.sayResutl("the word is not valid!")
-            self.lblResult.grid(row=5, column=0, pady=5, columnspan=5)
-
-            if velocity:
-                self.animate(length, transitions, 500)
-            else:
-                self.animate(length, transitions, 2000)
-
-
-    def validateEvenPDA(self, word, l, stack, transitions):
-        validWay = False
-        if l<len(word):
-
-            if self.evenPDA.currentState == 0:
-                if word[l] in "abcdefghijklmnñopqrstuvwxyz":
-                    stack.append(word[l])
-                    transitions.append({'id':0,'letter':word[l],'push':True})
-                elif word[l] == "λ":
-                    self.evenPDA.nexState(1)
-                    validWay, transitionsAux = self.validateEvenPDA(word,l+1,stack.copy(),transitions.copy())
-                    if not validWay:
-                        self.evenPDA.nexState(0)
-                    else:
-                        transitions = transitionsAux 
-                        return validWay, transitions 
-            elif self.evenPDA.currentState == 1:
-                if  word[l] != "λ" and word[l] == stack[-1]:
-                    stack.pop()
-                    transitions.append({'id':1,'letter':word[l],'push':False})
-                elif word[l] == "λ":
-                    if stack[-1] == "#" and l == len(word)-1:
-                        stack.pop()
-                        transitions.append({'id':2,'letter':"#",'push':False})
-                        self.evenPDA.nexState(2)
-                        return True, transitions
-                else:
-                    return False, []
-            validWay, transitions = self.validateEvenPDA(word,l+1, stack,transitions)
-
-        return validWay, transitions
-
-    def validateOddPDA(self,word, transitions, middle):
-
-        for l in word:
-            if self.oddPDA.currentState == 0:
-                if l in "abcdefghijklmnñopqrstuvwxyz":
-                    self.stack.push(l)
-                    transitions.append({'id':0,'letter':l,'push':True})
-                elif l == "|":
-                    self.oddPDA.nexState(1)
-            elif self.oddPDA.currentState == 1:
-                transitions.append({'id':1,'letter':l,'push':False})
-                if l == self.stack.getTop():
-                    self.stack.pop()
-                    if self.stack.getTop() == "#":
-                        transitions.append({'id':2,'letter':l,'push':False})
-                        self.oddPDA.nexState(2)
-                        self.stack.pop()
-                else:
-                    break
-        return transitions
 
             
