@@ -1,68 +1,13 @@
-import pyttsx3, pyaudio, wave, requests, json, copy
+import requests, json, copy
 from tkinter import *
+from .widgets import ScrolledFrame, PDAImage
 from .language import Language
 from .state import State
 from .pda import PDA
 from .stack import Stack
 from .tree import ExpressionTree
 from .graph import Graph
-
-class PDAImage(Canvas):
-
-    def __init__(self, master=None, **kw):
-        self.image = kw.pop('image', None)
-        super(PDAImage, self).__init__(master=master, **kw)
-        self['highlightthickness'] = 0
-        # self.propagate(0)  # wont let the scrollbars rule the size of Canvas
-        self.imagePDA = self.create_image(177,75, anchor=CENTER, image=self.image, tags='pda')
-
-        # Assign the region to be scrolled 
-        # self.config(scrollregion=self.bbox('all'))
-
-        self.focus_set()
-
-    def updateImage(self):
-        self.image = PhotoImage(file="img/pda/pda.png")
-        self.itemconfigure(self.imagePDA, image = self.image)
-
-class ScrolledFrame(Frame):
-
-    def __init__(self, parent, vertical=True, horizontal=False):
-        super().__init__(parent)
-        # canvas for inner frame
-        self._canvas = Canvas(self, background= "#595959", bd=0, highlightthickness=0,borderwidth=2 ,relief='solid')
-        self._canvas.grid(row=0, column=0, sticky='news') # changed
-
-        # create right scrollbar and connect to canvas Y
-        self._vertical_bar = Scrollbar(self, orient='vertical', command=self._canvas.yview)
-        if vertical:
-            self._vertical_bar.grid(row=0, column=1, sticky='ns')
-        self._canvas.configure(yscrollcommand=self._vertical_bar.set)
-
-        # create bottom scrollbar and connect to canvas X
-        self._horizontal_bar = Scrollbar(self, orient='horizontal', command=self._canvas.xview)
-        if horizontal:
-            self._horizontal_bar.grid(row=1, column=0, sticky='we')
-        self._canvas.configure(xscrollcommand=self._horizontal_bar.set)
-
-        # inner frame for widgets
-        self.inner = Frame(self._canvas,  bg= "#595959")
-        self._window = self._canvas.create_window((160, 0), window=self.inner, anchor='nw')
-
-        # autoresize inner frame
-        self.columnconfigure(0, weight=1) # changed
-        self.rowconfigure(0, weight=1) # changed
-
-        # resize when configure changed
-        self.inner.bind('<Configure>', self.resize)
-        self._canvas.bind('<Configure>', self.frame_width)
-
-    def frame_width(self, event):
-        # resize inner frame to canvas size
-        self._canvas.itemconfig(self._window, width = 200)
-
-    def resize(self, event=None): 
-        self._canvas.configure(scrollregion=self._canvas.bbox('all'))
+from .audio import Audio
 
 class App:
 
@@ -74,6 +19,7 @@ class App:
         self.gui.resizable(False,False)
         self.icon = Image("photo", file="logo.png")
         self.gui.tk.call('wm','iconphoto',self.gui._w, self.icon)
+        self.audio = Audio()
         self.txtStack = []
         self.G = None
         self.stack = None
@@ -81,7 +27,7 @@ class App:
         self.oddPDA = None
         self.transitions = []
         self.states = []
-        self.language = Language("{λ, a, b, c, d, e, f, g, h, i, j, k, l, m, n, ñ, o, p, q, r, s, t, u, v, w, x, y, z}")
+        self.language = Language("{λ,a,b,c,d,e,f,g,h,i,j,k,l,m,n,ñ,o,p,q,r,s,t,u,v,w,x,y,z}")
         self.currentRegex = StringVar()
         self.word = StringVar()
 
@@ -116,24 +62,16 @@ class App:
         self.panelStack = ScrolledFrame(self.panel)
         self.panelStack.grid(row = 4,column=0, columnspan=5, pady=10)
 
-        for i in range(0):
-            element = Entry(self.panelStack.inner, width=7, state='disabled',font=('Verdana',12))
-            element.grid(row = i, column=0, columnspan=5)
-            element.config(disabledbackground="white", disabledforeground="#000000", justify="center",highlightbackground="#000000",highlightthickness=1, bd=1)
-            self.txtStack.append(element)
+        # for i in range(0):
+        #     element = Entry(self.panelStack.inner, width=7, state='disabled',font=('Verdana',12))
+        #     element.grid(row = i, column=0, columnspan=5)
+        #     element.config(disabledbackground="white", disabledforeground="#000000", justify="center",highlightbackground="#000000",highlightthickness=1, bd=1)
+        #     self.txtStack.append(element)
 
         self.lblResult = Label(self.panel, bg="#e1e5ed", text="", font=('Verdana',11,'bold'))
         self.lblReader = Label(self.panel, bg="#e1e5ed", text="", font=('Verdana',11,'bold'))
 
         mainloop()
-
-    def showPDA(self,type):
-        if type == "odd":
-            self.createGraph(self.oddPDA,"Pushdown Automaton Odd Palindrome")
-        elif type == "even":
-            self.createGraph(self.evenPDA,"Pushdown Automaton Even Palindrome")
-        self.sImage.updateImage()
-
 
     def createPDA(self):
 
@@ -144,61 +82,11 @@ class App:
         state4 = State(0,"q",False)
 
         # Add the transitions
-        state1.addTransition("a",0)
-        state1.addTransition("b",0)
-        state1.addTransition("c",0)
-        state1.addTransition("d",0)
-        state1.addTransition("e",0)
-        state1.addTransition("f",0)
-        state1.addTransition("g",0)
-        state1.addTransition("h",0)
-        state1.addTransition("i",0)
-        state1.addTransition("j",0)
-        state1.addTransition("k",0)
-        state1.addTransition("l",0)
-        state1.addTransition("m",0)
-        state1.addTransition("n",0)
-        state1.addTransition("ñ",0)
-        state1.addTransition("o",0)
-        state1.addTransition("p",0)
-        state1.addTransition("q",0)
-        state1.addTransition("r",0)
-        state1.addTransition("s",0)
-        state1.addTransition("t",0)
-        state1.addTransition("u",0)
-        state1.addTransition("v",0)
-        state1.addTransition("w",0)
-        state1.addTransition("x",0)
-        state1.addTransition("y",0)
-        state1.addTransition("z",0)
+        for l in "abcdefghijklmnñopqrstuvwxyz":
+            state1.addTransition(l,0)
+            state2.addTransition(l,1)
+
         state1.addTransition("λ, λ ⟶ λ",1)
-        state2.addTransition("a",1)
-        state2.addTransition("b",1)
-        state2.addTransition("c",1)
-        state2.addTransition("d",1)
-        state2.addTransition("e",1)
-        state2.addTransition("f",1)
-        state2.addTransition("g",1)
-        state2.addTransition("h",1)
-        state2.addTransition("i",1)
-        state2.addTransition("j",1)
-        state2.addTransition("k",1)
-        state2.addTransition("l",1)
-        state2.addTransition("m",1)
-        state2.addTransition("n",1)
-        state2.addTransition("ñ",1)
-        state2.addTransition("o",1)
-        state2.addTransition("p",1)
-        state2.addTransition("q",1)
-        state2.addTransition("r",1)
-        state2.addTransition("s",1)
-        state2.addTransition("t",1)
-        state2.addTransition("u",1)
-        state2.addTransition("v",1)
-        state2.addTransition("w",1)
-        state2.addTransition("x",1)
-        state2.addTransition("y",1)
-        state2.addTransition("z",1)
         state2.addTransition("λ, # ⟶ λ",2)
 
         self.evenPDA = PDA([copy.copy(state1),state2,state3])
@@ -225,28 +113,45 @@ class App:
                 
         self.G = Graph(dGraphTr,accepted)
         self.G.initGraph(title)
-        
 
+    def showPDA(self,type):
+        if type == "odd":
+            self.createGraph(self.oddPDA,"Pushdown Automaton Odd Palindrome")
+        elif type == "even":
+            self.createGraph(self.evenPDA,"Pushdown Automaton Even Palindrome")
+        self.sImage.updateImage()
+        
     def changeTransitions(self,a,i):
         self.G.changeState(a,i)
         self.sImage.updateImage()
+            
+    def pushStack(self, satckPlace,value):
+        satckPlace.set(value)
+
+    def popStack(self, satckPlace):
+        satckPlace.set("")
+
+    def showReader(self,value):
+        self.lblReader.config(text=str("Head Reader: "+value))
+
 
     def animate(self,length, transitions, delay):
 
+        # clear old stack
         for txt in self.txtStack:
             txt.destroy()
 
+        # creating stack
         stringStack = []
         for i in range(length+1):
             varElem = StringVar()
-            stringStack.append(varElem)
             element = Entry(self.panelStack.inner, width=7, textvariable=varElem, state='disabled',font=('Verdana',12))
             element.grid(row = i, column=0, columnspan=5)
             element.config(disabledbackground="white", disabledforeground="#000000", justify="center",highlightbackground="#000000",highlightthickness=1, bd=1)
             self.txtStack.append(element)
+            stringStack.append(varElem)
 
         stringStack[-1].set("#")
-        # length-=1
         self.changeTransitions(("q0","q0"),("q0","q0"))
         s=1
         i="q0"
@@ -268,54 +173,6 @@ class App:
             s+=1
             a=i
             i="q"+str(t['id'])
-            
-
-    def pushStack(self, satckPlace,value):
-        satckPlace.set(value)
-
-    def popStack(self, satckPlace):
-        satckPlace.set("")
-
-    def showReader(self,value):
-        self.lblReader.config(text=str("Head Reader: "+value))
-
-    def runPDA(self, velocity):
-        transitions=[]
-        length = len(self.word.get())
-        middle = int((length+1)/2)-1
-        self.oddPDA.nexState(0)
-        self.evenPDA.nexState(0)
-        self.stack = Stack()
-        self.stack.push("#")
-        if self.language.verifyComposition(self.word.get()):
-            if length%2==0:
-                self.showPDA("even")
-                word = ""
-                for l in self.word.get():
-                    word += l+"λ" 
-                transitions = self.validateEvenPDA(word,0,['#'],[])[1]
-            else:
-                self.showPDA("odd")
-                word = list(self.word.get())
-                lmiddle = word[middle]
-                word[middle]="|"
-                transitions = self.validateOddPDA(word,transitions, lmiddle)
-
-            if self.oddPDA.verifyAcceptation() or self.evenPDA.verifyAcceptation():
-                self.lblResult.config(text = "Is valid?: YES", fg="green")
-                self.sayResutl("the word is valid!")
-            else:    
-                self.lblResult.config(text = "Is valid?: NO", fg="red")
-                self.sayResutl("the word is not valid!")
-
-            self.lblReader.grid(row=5, column=0, pady=5, columnspan=2)
-            self.lblResult.grid(row=5, column=2, pady=5, columnspan=2)
-
-            if velocity:
-                self.animate(length, transitions, 500)
-            else:
-                self.animate(length, transitions, 2000)
-
 
     def validateEvenPDA(self, word, l, stack, transitions):
 
@@ -370,73 +227,46 @@ class App:
                 else:
                     break
         return transitions
-        
 
-    def sayResutl(self,value):
-        engine = pyttsx3.init()
-        engine.setProperty('rate', 160)
-        engine.setProperty('volume', 0.9)
-        engine.setProperty('voice', 'english+m5')
-        engine.say(str(value))
-        engine.runAndWait()
+    def runPDA(self, velocity):
+        transitions=[]
+        length = len(self.word.get())
+        middle = int((length+1)/2)-1
+        self.oddPDA.nexState(0)
+        self.evenPDA.nexState(0)
+        self.stack = Stack()
+        self.stack.push("#")
+        if self.language.verifyComposition(self.word.get()):
+            if length%2==0:
+                self.showPDA("even")
+                word = ""
+                for l in self.word.get():
+                    word += l+"λ" 
+                transitions = self.validateEvenPDA(word,0,['#'],[])[1]
+            else:
+                self.showPDA("odd")
+                word = list(self.word.get())
+                lmiddle = word[middle]
+                word[middle]="|"
+                transitions = self.validateOddPDA(word,transitions, lmiddle)
 
-    def record_audio(self,RECORD_SECONDS, WAVE_OUTPUT_FILENAME):
-        #--------- SETTING PARAMS FOR OUR AUDIO FILE ------------#
-        FORMAT = pyaudio.paInt16    # format of wave
-        CHANNELS = 2                # no. of audio channels
-        RATE = 44100                # frame rate
-        CHUNK = 1024                # frames per audio sample
-        #--------------------------------------------------------#
-    
-        # creating PyAudio object
-        audio = pyaudio.PyAudio()
-    
-        # open a new stream for microphone
-        # It creates a PortAudio Stream Wrapper class object
-        stream = audio.open(format=FORMAT,channels=CHANNELS,rate=RATE, input=True,frames_per_buffer=CHUNK)
-    
-        #----------------- start of recording -------------------#
-        print("Listening...")
-    
-        # list to save all audio frames
-        frames = []
-    
-        for i in range(int(RATE / CHUNK * RECORD_SECONDS)):
-            # read audio stream from microphone
-            data = stream.read(CHUNK)
-            # append audio data to frames list
-            frames.append(data)
-    
-        #------------------ end of recording --------------------#
-        print("Finished recording.")
-    
-        stream.stop_stream()    # stop the stream object
-        stream.close()          # close the stream object
-        audio.terminate()       # terminate PortAudio
-    
-        #------------------ saving audio ------------------------#
-    
-        # create wave file object
-        waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-    
-        # settings for wave file object
-        waveFile.setnchannels(CHANNELS)
-        waveFile.setsampwidth(audio.get_sample_size(FORMAT))
-        waveFile.setframerate(RATE)
-        waveFile.writeframes(b''.join(frames))
-    
-        # closing the wave file object
-        waveFile.close()
-    
-    def read_audio(self,WAVE_FILENAME):
-        # function to read audio(wav) file
-        with open(WAVE_FILENAME, 'rb') as f:
-            audio = f.read()
-        return audio
+            if self.oddPDA.verifyAcceptation() or self.evenPDA.verifyAcceptation():
+                self.lblResult.config(text = "Is valid?: YES", fg="green")
+                self.audio.sayResutl("the word is valid!")
+            else:    
+                self.lblResult.config(text = "Is valid?: NO", fg="red")
+                self.audio.sayResutl("the word is not valid!")
+
+            self.lblReader.grid(row=5, column=0, pady=5, columnspan=2)
+            self.lblResult.grid(row=5, column=2, pady=5, columnspan=2)
+
+            if velocity:
+                self.animate(length, transitions, 500)
+            else:
+                self.animate(length, transitions, 2000)    
 
     def runSpeech(self):
         #
-
         # Wit speech API endpoint
         API_ENDPOINT = 'https://api.wit.ai/speech'
         
@@ -447,17 +277,16 @@ class App:
         num_seconds = 3
         
         # record audio of specified length in specified audio file
-        self.record_audio(num_seconds, AUDIO_FILENAME)
+        self.audio.record_audio(num_seconds, AUDIO_FILENAME)
     
         # reading audio
-        audio = self.read_audio(AUDIO_FILENAME)
+        voice = self.audio.read_audio(AUDIO_FILENAME)
     
         # defining headers for HTTP request
         headers = {'authorization': 'Bearer ' + wit_access_token,'Content-Type': 'audio/wav'}
     
         # making an HTTP post request
-        resp = requests.post(API_ENDPOINT, headers = headers,
-                            data = audio)
+        resp = requests.post(API_ENDPOINT, headers = headers, data = voice)
     
         # converting response content to JSON format
         data = json.loads(resp.content.decode("unicode_escape").encode('latin1').decode('utf8'))
