@@ -14,8 +14,8 @@ class Graph:
         self.G=nx.MultiDiGraph()
 
         self.G.graph['edge'] = {'arrowsize': '0.8', 'overlap':False, 'color':'black'}
-        self.G.graph['graph'] = {'scale': '3', 'rankdir':'LR', 'label':label}
-        self.G.graph['node']= {'shape':'circle', 'color':'black'}
+        self.G.graph['graph'] = {'scale': '14', 'rankdir':'LR', 'label':label}
+        self.G.graph['node']= {'shape':'circle', 'color':'#3f9de0', 'style':'filled'}
         
         for edge in self.transitions:
             self.G.add_edge(edge['from'], edge['to'], label=edge['with'])
@@ -23,6 +23,7 @@ class Graph:
         for i in self.accepted:
             n=self.G.node[i]
             n['shape'] ='doublecircle'
+            # n['fillcolor'] = 'green'
 
         self.A = to_agraph(self.G) 
         self.A.layout('dot')                                                          
@@ -30,7 +31,7 @@ class Graph:
 
     def changeState(self,i,a):
         
-        self.G.node[i[0]]['color'] = 'black'
+        self.G.node[i[0]]['color'] = '#3f9de0'
         self.G.node[i[1]]['color'] = 'green'
 
         self.G[a[0]][a[1]][0]['color'] = 'black'

@@ -29,9 +29,8 @@ class ScrolledFrame(Frame):
 
     def __init__(self, parent, vertical=True, horizontal=False):
         super().__init__(parent)
-
         # canvas for inner frame
-        self._canvas = Canvas(self)
+        self._canvas = Canvas(self, background= "#595959", bd=0, highlightthickness=0,borderwidth=2 ,relief='solid')
         self._canvas.grid(row=0, column=0, sticky='news') # changed
 
         # create right scrollbar and connect to canvas Y
@@ -47,7 +46,7 @@ class ScrolledFrame(Frame):
         self._canvas.configure(xscrollcommand=self._horizontal_bar.set)
 
         # inner frame for widgets
-        self.inner = Frame(self._canvas)
+        self.inner = Frame(self._canvas,  bg= "#595959")
         self._window = self._canvas.create_window((160, 0), window=self.inner, anchor='nw')
 
         # autoresize inner frame
@@ -73,7 +72,7 @@ class App:
         self.gui.title("Pushdown Automaton")
         self.gui.geometry("510x620")
         self.gui.resizable(False,False)
-        self.icon = Image("photo", file="python-logo.png")
+        self.icon = Image("photo", file="logo.png")
         self.gui.tk.call('wm','iconphoto',self.gui._w, self.icon)
         self.txtStack = []
         self.G = None
@@ -86,23 +85,23 @@ class App:
         self.currentRegex = StringVar()
         self.word = StringVar()
 
-        self.panel = Frame(self.gui)
+        self.panel = Frame(self.gui, bg="#e1e5ed")
         self.panel.pack(fill="both", expand="True")
 
-        self.lblPDA = Label(self.panel, text="Pushdown Automaton", font=('Verdana',20))
+        self.lblPDA = Label(self.panel, bg="#e1e5ed", text="Pushdown Automaton", font=('Verdana',18,'bold'))
         self.lblPDA.grid(row = 0,column=0, columnspan=5, pady=10)
 
-        self.lblWord = Label(self.panel, text="Word:", font=('Verdana',12))
+        self.lblWord = Label(self.panel, bg="#e1e5ed",text="Word:", font=('Verdana',13,'bold'))
         self.lblWord.grid(row = 1, column=0, pady=10)
-        self.txtWord=Entry(self.panel, textvariable = self.word, width="16",font=('Verdana',12))
-        self.txtWord.grid(row=1, column=1, pady=10)
+        self.txtWord=Entry(self.panel, textvariable = self.word, width="16",font=('Verdana',13))
+        self.txtWord.grid(row=1, column=1, pady=10, padx=0)
         self.txtWord.config(disabledbackground="black", disabledforeground="#03f943", justify="left",highlightbackground="#000000",highlightthickness=1, bd=0)
-        self.btnVerifyFast=Button(self.panel, text="fast", font=('Verdana',10), command=lambda:self.runPDA(True))
+        self.btnVerifyFast=Button(self.panel, bg="#3f9de0", fg="#ffffff",relief='flat', text="Fast", font=('Verdana',10,'bold'), command=lambda:self.runPDA(True))
         self.btnVerifyFast.grid(row=1, column=2)
-        self.btnVerifyLow=Button(self.panel, text="slow", font=('Verdana',10), command=lambda:self.runPDA(False))
+        self.btnVerifyLow=Button(self.panel, bg="#3f9de0", fg="#ffffff",relief='flat',text="Slow", font=('Verdana',10,'bold'), command=lambda:self.runPDA(False))
         self.btnVerifyLow.grid(row=1, column=3)
         icon = PhotoImage(file ="img/microphone.png")
-        self.btnSpeech=Button(self.panel, text="n",width="25",height="25", image=icon, font=('Verdana',10), command=lambda:self.runSpeech())
+        self.btnSpeech=Button(self.panel, bg="#3f9de0", relief='flat',text="",width="30",height="25", image=icon, font=('Verdana',10), command=lambda:self.runSpeech())
         self.btnSpeech.grid(row=1, column=4)
         
         background = PhotoImage(file="img/background.png")
@@ -111,7 +110,7 @@ class App:
         self.createPDA()
         self.showPDA("odd")
 
-        self.lblStack = Label(self.panel, text="Stack", font=('Verdana',20))
+        self.lblStack = Label(self.panel, bg="#e1e5ed", text="Stack", font=('Verdana',18,'bold'))
         self.lblStack.grid(row = 3,column=0, columnspan=5, pady=10)
 
         self.panelStack = ScrolledFrame(self.panel)
@@ -123,8 +122,8 @@ class App:
             element.config(disabledbackground="white", disabledforeground="#000000", justify="center",highlightbackground="#000000",highlightthickness=1, bd=1)
             self.txtStack.append(element)
 
-        self.lblResult = Label(self.panel, text="", font=('Verdana',11))
-        self.lblReader = Label(self.panel, text="", font=('Verdana',11))
+        self.lblResult = Label(self.panel, bg="#e1e5ed", text="", font=('Verdana',11,'bold'))
+        self.lblReader = Label(self.panel, bg="#e1e5ed", text="", font=('Verdana',11,'bold'))
 
         mainloop()
 
@@ -236,7 +235,7 @@ class App:
 
         for txt in self.txtStack:
             txt.destroy()
-        self.lblReader.grid(row=5, column=0, pady=5, columnspan=2)
+
         stringStack = []
         for i in range(length+1):
             varElem = StringVar()
@@ -247,7 +246,7 @@ class App:
             self.txtStack.append(element)
 
         stringStack[-1].set("#")
-        length-=1
+        # length-=1
         self.changeTransitions(("q0","q0"),("q0","q0"))
         s=1
         i="q0"
@@ -255,24 +254,30 @@ class App:
         for t in transitions:
             self.gui.after(s*delay,self.changeTransitions,(i,"q"+str(t['id'])),(a,i))
             if t['push']:
-                self.gui.after(s*delay,self.pushStack,stringStack[length],t['letter'])
                 length-=1
+                self.gui.after(s*delay,self.pushStack,stringStack[length],t['letter'])
+                self.gui.after(s*delay,self.showReader,t['letter'])
             else:
-                self.gui.after(s*delay,self.popStack,stringStack[length],t['letter'])
-                length+=1
+                if t['change']:
+                    self.gui.after(s*delay,self.showReader,t['letter'])
+                else:
+                    if length<len(stringStack):
+                        self.gui.after(s*delay,self.showReader,t['letter'])
+                        self.gui.after(s*delay,self.popStack,stringStack[length])
+                        length+=1
             s+=1
             a=i
             i="q"+str(t['id'])
             
-    
 
     def pushStack(self, satckPlace,value):
-        self.lblReader.config(text=str("Reader: "+value))
         satckPlace.set(value)
 
-    def popStack(self, satckPlace, value):
-        self.lblReader.config(text=str("Reader: "+value))
+    def popStack(self, satckPlace):
         satckPlace.set("")
+
+    def showReader(self,value):
+        self.lblReader.config(text=str("Head Reader: "+value))
 
     def runPDA(self, velocity):
         transitions=[]
@@ -303,7 +308,8 @@ class App:
                 self.lblResult.config(text = "Is valid?: NO", fg="red")
                 self.sayResutl("the word is not valid!")
 
-            self.lblResult.grid(row=5, column=1, pady=5, columnspan=3)
+            self.lblReader.grid(row=5, column=0, pady=5, columnspan=2)
+            self.lblResult.grid(row=5, column=2, pady=5, columnspan=2)
 
             if velocity:
                 self.animate(length, transitions, 500)
@@ -312,13 +318,13 @@ class App:
 
 
     def validateEvenPDA(self, word, l, stack, transitions):
+
         validWay = False
         if l<len(word):
-
             if self.evenPDA.currentState == 0:
                 if word[l] in "abcdefghijklmnñopqrstuvwxyz":
                     stack.append(word[l])
-                    transitions.append({'id':0,'letter':word[l],'push':True})
+                    transitions.append({'id':0,'letter':word[l],'push':True,'change':False})
                 elif word[l] == "λ":
                     self.evenPDA.nexState(1)
                     validWay, transitionsAux = self.validateEvenPDA(word,l+1,stack.copy(),transitions.copy())
@@ -330,11 +336,11 @@ class App:
             elif self.evenPDA.currentState == 1:
                 if  word[l] != "λ" and word[l] == stack[-1]:
                     stack.pop()
-                    transitions.append({'id':1,'letter':word[l],'push':False})
+                    transitions.append({'id':1,'letter':word[l],'push':False,'change':False})
                 elif word[l] == "λ":
                     if stack[-1] == "#" and l == len(word)-1:
                         stack.pop()
-                        transitions.append({'id':2,'letter':word[l],'push':False})
+                        transitions.append({'id':2,'letter':"#",'push':False,'change':False})
                         self.evenPDA.nexState(2)
                         return True, transitions
                 else:
@@ -349,16 +355,16 @@ class App:
             if self.oddPDA.currentState == 0:
                 if l in "abcdefghijklmnñopqrstuvwxyz":
                     self.stack.push(l)
-                    transitions.append({'id':0,'letter':l,'push':True})
+                    transitions.append({'id':0,'letter':l,'push':True,'change':False})
                 elif l == "|":
-                    transitions.append({'id':0,'letter':middle,'push':False})
+                    transitions.append({'id':1,'letter':middle,'push':False,'change':True})
                     self.oddPDA.nexState(1)
             elif self.oddPDA.currentState == 1:
-                transitions.append({'id':1,'letter':l,'push':False})
                 if l == self.stack.getTop():
+                    transitions.append({'id':1,'letter':l,'push':False,'change':False})
                     self.stack.pop()
                     if self.stack.getTop() == "#":
-                        transitions.append({'id':2,'letter':l,'push':False})
+                        transitions.append({'id':2,'letter':l,'push':False,'change':False})
                         self.oddPDA.nexState(2)
                         self.stack.pop()
                 else:
