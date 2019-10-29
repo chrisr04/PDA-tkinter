@@ -14,12 +14,13 @@ class Graph:
         self.G=nx.MultiDiGraph()
 
         self.G.graph['edge'] = {'arrowsize': '0.8', 'overlap':False, 'color':'black'}
-        self.G.graph['graph'] = {'scale': '14', 'rankdir':'LR', 'label':label}
+        self.G.graph['graph'] = {'scale': '3', 'rankdir':'LR', 'label':str("\t\t"+label), 'bgcolor':'#e1e5ed','fontname':'verdana','fontsize':12}
         self.G.graph['node']= {'shape':'circle', 'color':'#3f9de0', 'style':'filled'}
         
+        self.G.add_edge("s","q0",label="           ")
         for edge in self.transitions:
             self.G.add_edge(edge['from'], edge['to'], label=edge['with'])
-
+        self.G.node["s"]['style']="invis"
         for i in self.accepted:
             n=self.G.node[i]
             n['shape'] ='doublecircle'

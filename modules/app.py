@@ -13,11 +13,11 @@ class PDAImage(Canvas):
         self.image = kw.pop('image', None)
         super(PDAImage, self).__init__(master=master, **kw)
         self['highlightthickness'] = 0
-        self.propagate(0)  # wont let the scrollbars rule the size of Canvas
-        self.imagePDA = self.create_image(0,0, anchor=CENTER, image=self.image, tags='pda')
+        # self.propagate(0)  # wont let the scrollbars rule the size of Canvas
+        self.imagePDA = self.create_image(177,75, anchor=CENTER, image=self.image, tags='pda')
 
         # Assign the region to be scrolled 
-        self.config(scrollregion=self.bbox('all'))
+        # self.config(scrollregion=self.bbox('all'))
 
         self.focus_set()
 
@@ -96,16 +96,16 @@ class App:
         self.txtWord=Entry(self.panel, textvariable = self.word, width="16",font=('Verdana',13))
         self.txtWord.grid(row=1, column=1, pady=10, padx=0)
         self.txtWord.config(disabledbackground="black", disabledforeground="#03f943", justify="left",highlightbackground="#000000",highlightthickness=1, bd=0)
-        self.btnVerifyFast=Button(self.panel, bg="#3f9de0", fg="#ffffff",relief='flat', text="Fast", font=('Verdana',10,'bold'), command=lambda:self.runPDA(True))
+        self.btnVerifyFast=Button(self.panel, bg="#1c93e8", fg="#ffffff",relief='flat', text="Fast", font=('Verdana',10,'bold'), command=lambda:self.runPDA(True))
         self.btnVerifyFast.grid(row=1, column=2)
-        self.btnVerifyLow=Button(self.panel, bg="#3f9de0", fg="#ffffff",relief='flat',text="Slow", font=('Verdana',10,'bold'), command=lambda:self.runPDA(False))
+        self.btnVerifyLow=Button(self.panel, bg="#1c93e8", fg="#ffffff",relief='flat',text="Slow", font=('Verdana',10,'bold'), command=lambda:self.runPDA(False))
         self.btnVerifyLow.grid(row=1, column=3)
         icon = PhotoImage(file ="img/microphone.png")
-        self.btnSpeech=Button(self.panel, bg="#3f9de0", relief='flat',text="",width="30",height="25", image=icon, font=('Verdana',10), command=lambda:self.runSpeech())
+        self.btnSpeech=Button(self.panel, bg="#1c93e8", relief='flat',text="",width="30",height="25", image=icon, font=('Verdana',10), command=lambda:self.runSpeech())
         self.btnSpeech.grid(row=1, column=4)
         
         background = PhotoImage(file="img/background.png")
-        self.sImage = PDAImage(self.panel, image = background, width=465, height=137, bg="#ffffff")
+        self.sImage = PDAImage(self.panel, image = background, width=465, height=137, bg="#e1e5ed")
         self.sImage.grid(row=2, column=0,columnspan=5, padx= 20)
         self.createPDA()
         self.showPDA("odd")
@@ -116,7 +116,7 @@ class App:
         self.panelStack = ScrolledFrame(self.panel)
         self.panelStack.grid(row = 4,column=0, columnspan=5, pady=10)
 
-        for i in range(10):
+        for i in range(0):
             element = Entry(self.panelStack.inner, width=7, state='disabled',font=('Verdana',12))
             element.grid(row = i, column=0, columnspan=5)
             element.config(disabledbackground="white", disabledforeground="#000000", justify="center",highlightbackground="#000000",highlightthickness=1, bd=1)
@@ -340,7 +340,7 @@ class App:
                 elif word[l] == "λ":
                     if stack[-1] == "#" and l == len(word)-1:
                         stack.pop()
-                        transitions.append({'id':2,'letter':"#",'push':False,'change':False})
+                        transitions.append({'id':2,'letter':"λ",'push':False,'change':False})
                         self.evenPDA.nexState(2)
                         return True, transitions
                 else:
