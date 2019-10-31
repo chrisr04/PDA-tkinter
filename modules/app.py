@@ -1,5 +1,6 @@
 import requests, json, copy
 from tkinter import *
+from tkinter import messagebox
 from .widgets import ScrolledFrame, PDAImage
 from .language import Language
 from .state import State
@@ -120,59 +121,6 @@ class App:
         elif type == "even":
             self.createGraph(self.evenPDA,"Pushdown Automaton Even Palindrome")
         self.sImage.updateImage()
-        
-    def changeTransitions(self,a,i):
-        self.G.changeState(a,i)
-        self.sImage.updateImage()
-            
-    def pushStack(self, satckPlace,value):
-        satckPlace.set(value)
-
-    def popStack(self, satckPlace):
-        satckPlace.set("")
-
-    def showReader(self,value):
-        self.lblReader.config(text=str("Head Reader: "+value))
-
-
-    def animate(self,length, transitions, delay):
-
-        # clear old stack
-        for txt in self.txtStack:
-            txt.destroy()
-
-        # creating stack
-        stringStack = []
-        for i in range(length+1):
-            varElem = StringVar()
-            element = Entry(self.panelStack.inner, width=7, textvariable=varElem, state='disabled',font=('Verdana',12))
-            element.grid(row = i, column=0, columnspan=5)
-            element.config(disabledbackground="white", disabledforeground="#000000", justify="center",highlightbackground="#000000",highlightthickness=1, bd=1)
-            self.txtStack.append(element)
-            stringStack.append(varElem)
-
-        stringStack[-1].set("#")
-        self.changeTransitions(("q0","q0"),("q0","q0"))
-        s=1
-        i="q0"
-        a="q0"
-        for t in transitions:
-            self.gui.after(s*delay,self.changeTransitions,(i,"q"+str(t['id'])),(a,i))
-            if t['push']:
-                length-=1
-                self.gui.after(s*delay,self.pushStack,stringStack[length],t['letter'])
-                self.gui.after(s*delay,self.showReader,t['letter'])
-            else:
-                if t['change']:
-                    self.gui.after(s*delay,self.showReader,t['letter'])
-                else:
-                    if length<len(stringStack):
-                        self.gui.after(s*delay,self.showReader,t['letter'])
-                        self.gui.after(s*delay,self.popStack,stringStack[length])
-                        length+=1
-            s+=1
-            a=i
-            i="q"+str(t['id'])
 
     def validateEvenPDA(self, word, l, stack, transitions):
 
@@ -249,21 +197,79 @@ class App:
                 lmiddle = word[middle]
                 word[middle]="|"
                 transitions = self.validateOddPDA(word,transitions, lmiddle)
-
+            result = ""
             if self.oddPDA.verifyAcceptation() or self.evenPDA.verifyAcceptation():
-                self.lblResult.config(text = "Is valid?: YES", fg="green")
-                self.audio.sayResutl("the word is valid!")
-            else:    
-                self.lblResult.config(text = "Is valid?: NO", fg="red")
-                self.audio.sayResutl("the word is not valid!")
+                result = "The word is valid!"
+                # self.lblResult.config(text = "Is valid?: YES", fg="green")
+                # self.audio.sayResutl("the word is valid!")
+            else:
+                result = "the word is not valid!"
+                # self.lblResult.config(text = "Is valid?: NO", fg="red")
+                # self.audio.sayResutl("the word is not valid!")
 
             self.lblReader.grid(row=5, column=0, pady=5, columnspan=2)
             self.lblResult.grid(row=5, column=2, pady=5, columnspan=2)
 
             if velocity:
-                self.animate(length, transitions, 500)
+                self.animate(length, transitions, 500, result)
             else:
-                self.animate(length, transitions, 2000)    
+                self.animate(length, transitions, 2000, result)    
+
+    def changeTransitions(self,a,i):
+        self.G.changeState(a,i)
+        self.sImage.updateImage()
+            
+    def pushStack(self, satckPlace,value):
+        satckPlace.set(value)
+
+    def popStack(self, satckPlace):
+        satckPlace.set("")
+
+    def showReader(self,value):
+        self.lblReader.config(text=str("Head Reader: "+value))
+
+
+    def animate(self,length, transitions, delay, result):
+
+        # clear old stack
+        for txt in self.txtStack:
+            txt.destroy()
+
+        # creating stack
+        stringStack = []
+        for i in range(length+1):
+            varElem = StringVar()
+            element = Entry(self.panelStack.inner, width=7, textvariable=varElem, state='disabled',font=('Verdana',12))
+            element.grid(row = i, column=0, columnspan=5)
+            element.config(disabledbackground="white", disabledforeground="#000000", justify="center",highlightbackground="#000000",highlightthickness=1, bd=1)
+            self.txtStack.append(element)
+            stringStack.append(varElem)
+
+        stringStack[-1].set("#")
+        self.changeTransitions(("q0","q0"),("q0","q0"))
+        s=1
+        i="q0"
+        a="q0"
+        for t in transitions:
+            self.gui.after(s*delay,self.changeTransitions,(i,"q"+str(t['id'])),(a,i))
+            if t['push']:
+                length-=1
+                self.gui.after(s*delay,self.pushStack,stringStack[length],t['letter'])
+                self.gui.after(s*delay,self.showReader,t['letter'])
+            else:
+                if t['change']:
+                    self.gui.after(s*delay,self.showReader,t['letter'])
+                else:
+                    if length<len(stringStack):
+                        self.gui.after(s*delay,self.showReader,t['letter'])
+                        self.gui.after(s*delay,self.popStack,stringStack[length])
+                        length+=1
+            s+=1
+            a=i
+            i="q"+str(t['id'])
+        self.gui.after((s-1)*delay,messagebox.showinfo,"Message",result)
+        self.gui.after(s*delay,self.audio.sayResutl,result)
+        
 
     def runSpeech(self):
         #
