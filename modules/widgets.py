@@ -7,7 +7,7 @@ class PDAImage(Canvas):
         super(PDAImage, self).__init__(master=master, **kw)
         self['highlightthickness'] = 0
         # self.propagate(0)  # wont let the scrollbars rule the size of Canvas
-        self.imagePDA = self.create_image(177,75, anchor="center", image=self.image, tags='pda')
+        self.imagePDA = self.create_image(165,75, anchor="center", image=self.image, tags='pda')
 
         # Assign the region to be scrolled 
         # self.config(scrollregion=self.bbox('all'))

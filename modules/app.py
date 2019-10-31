@@ -117,9 +117,9 @@ class App:
 
     def showPDA(self,type):
         if type == "odd":
-            self.createGraph(self.oddPDA,"Pushdown Automaton Odd Palindrome")
+            self.createGraph(self.oddPDA,"Odd Palindrome")
         elif type == "even":
-            self.createGraph(self.evenPDA,"Pushdown Automaton Even Palindrome")
+            self.createGraph(self.evenPDA,"Even Palindrome")
         self.sImage.updateImage()
 
     def validateEvenPDA(self, word, l, stack, transitions):
@@ -277,7 +277,7 @@ class App:
         API_ENDPOINT = 'https://api.wit.ai/speech'
         
         # Wit.ai api access token
-        wit_access_token = 'MFPJN7KJ634XSOFQUPZC3FF2SWOCDFJ4'
+        wit_access_token = 'SDHE5FG4GJCNDD7YIKFY4OCIBZG5UCFD'
         
         AUDIO_FILENAME = "audio/myspeech.wav"
         num_seconds = 3
