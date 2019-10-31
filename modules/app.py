@@ -274,7 +274,7 @@ class App:
     def runSpeech(self):
         #
         # Wit speech API endpoint
-        API_ENDPOINT = 'https://api.wit.ai/speech'
+        API_ENDPOINT = 'https://api.wit.ai/speech?v=20191030'
         
         # Wit.ai api access token
         wit_access_token = 'SDHE5FG4GJCNDD7YIKFY4OCIBZG5UCFD'
@@ -293,7 +293,7 @@ class App:
     
         # making an HTTP post request
         resp = requests.post(API_ENDPOINT, headers = headers, data = voice)
-    
+
         # converting response content to JSON format
         data = json.loads(resp.content.decode("unicode_escape").encode('latin1').decode('utf8'))
     
@@ -305,5 +305,4 @@ class App:
             self.runPDA(True)
         elif text == "lento":
             self.runPDA(False)
-
             
